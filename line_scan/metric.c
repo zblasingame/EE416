@@ -9,12 +9,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
-/* For some reason SHIFT_TERM being 80 works */
-/* better than 64? */
 #define SHIFT_TERM		64
-/* I shouldn't need this at all... */
-#define CENTERING_BIAS  10
 #define CUTOFF_WINDOW	12
+#define MAX_VALUE		1
 
 /*
  * Measure argmax cross correlation
@@ -26,18 +23,19 @@
  *		int16_t: Correction Term.
  */
 int16_t metric(uint16_t* x) {
+	/* This is our ideal distribution */
 	static const uint16_t ideal_dist[128] = {
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 1, 1, 1, 1,
-		1, 1, 1, 1, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, MAX_VALUE, MAX_VALUE, MAX_VALUE,
+		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
+		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
+		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
+		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
+		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0,
@@ -45,22 +43,35 @@ int16_t metric(uint16_t* x) {
 		0, 0, 0, 0, 0, 0, 0, 0
 	};
 
-	uint16_t n, m;
-	uint16_t start, sum;
-	uint16_t idx;
-	uint16_t max = 0;
-	int16_t argmax = 0;
+	/* Here be vars */
+	uint16_t n;
 
+	uint16_t* curr_real = x;
+	const uint16_t* stop_address = ideal_dist + 128;
+	const uint16_t* curr_ideal = ideal_dist;
+
+	uint16_t start;
+	uint16_t sum;
+	uint16_t max = 0;
+	uint16_t argmax = 0;
+
+
+	/* code */
+
+	/* Invert array so black pixels equals max value */
+	for (curr_real=x; curr_real < stop_address; ++curr_real) {
+		*curr_real = MAX_VALUE - *curr_real;
+	}
+
+	/* Perform cross correlation and argmax calculation with bounding */
 	for (n=CUTOFF_WINDOW; n < 128-CUTOFF_WINDOW; ++n) {
 		sum = 0;
-		start = (SHIFT_TERM-n > 0) ? SHIFT_TERM-n : 0;
+		start = (SHIFT_TERM - n > 0) ? SHIFT_TERM - n : 0;
+		curr_ideal = ideal_dist + start + n - SHIFT_TERM;
+		curr_real = x + start;
 
-		for (m=start; m < 128-n; ++m) {
-			/* Shift term centers on 64, rather than 0. */
-			/* Fixes weird negative indicies for argmax */
-			idx = m + n - SHIFT_TERM;
-
-			sum += *(x+m) * *(ideal_dist + idx);
+		while (curr_ideal < stop_address) {
+			sum += *curr_real++ * *curr_ideal++;
 		}
 
 		if (sum > max) {
@@ -69,5 +80,6 @@ int16_t metric(uint16_t* x) {
 		}
 	}
 
-	return -1 * (argmax - SHIFT_TERM + CENTERING_BIAS);
+	return argmax;
+
 }
