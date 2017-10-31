@@ -22,20 +22,6 @@ typedef struct {
 } vision_object;
 
 /*
- * Combine two bytes to make a word
- *
- * Args:
- *		(uint8_t*) first: Pointer to first byte.
- *		(uint8_t*) second: Pointer to second byte.
- *
- * Returns:
- *		uint16_t: word.
- */
-/* inline uint16_t make_word(uint8_t* first, uint8_t* second) { */
-/* 	return (uint16_t) *(first) << 8 | *second; */
-/* } */
-
-/*
  * Gets the command based on vision data.
  *
  * Args:
@@ -68,13 +54,14 @@ command get_command(uint8_t* bytes, uint16_t size) {
 
 	/* code */
 
-	if (size < 2 * VO_SIZE) {
-		return FORWARD;
-	}
-
 	/* Find first sync byte start from there */
 	while (bytes < stop_address-1 && (MAKE_WORD(bytes+1, bytes) != SYNC_WORD)) {
 		++bytes;
+	}
+
+	/* Ensure enough data remains */
+	if ((stop_address-bytes) < 2 * VO_SIZE) {
+		return FORWARD;
 	}
 
 	/* Grab vision objects */
