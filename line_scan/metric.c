@@ -9,77 +9,41 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define SHIFT_TERM		64
+#define CNTR			64
 #define CUTOFF_WINDOW	12
 #define MAX_VALUE		1
+#define DEFAULT_RTN	    0xF000
 
 /*
  * Measure argmax cross correlation
  *
  * Args:
- *		x (uint16_t*): Measured distribution.
+ *		data (uint16_t*): Black and white pixel array.
+ *			Note that the BLACK values have to be HIGH,
+ *			similiarly WHITE values are LOW.
  *
  * Returns:
- *		int16_t: Correction Term.
+ *		uint16_t: Correction Term, in [-64, 63]
  */
-int16_t metric(uint16_t* x) {
-	/* This is our ideal distribution */
-	static const uint16_t ideal_dist[128] = {
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, MAX_VALUE, MAX_VALUE, MAX_VALUE,
-		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
-		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
-		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
-		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE,
-		MAX_VALUE, MAX_VALUE, MAX_VALUE, MAX_VALUE, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0
-	};
-
+int16_t metric(uint16_t* data) {
 	/* Here be vars */
-	uint16_t n;
+	uint16_t i;
+	uint32_t arg_ev = 0;
+	uint32_t net_weight = 0;
 
-	uint16_t* curr_real = x;
-	const uint16_t* stop_address = ideal_dist + 128;
-	const uint16_t* curr_ideal = ideal_dist;
+	/* Arthmetic */
+	for (i=CUTOFF_WINDOW; i<128-CUTOFF_WINDOW; ++i) {
+		/* Inversion of data */
+		data[i] = MAX_VALUE - data[i];
 
-	uint16_t start;
-	uint16_t sum;
-	uint16_t max = 0;
-	uint16_t argmax = 0;
-
-
-	/* code */
-
-	/* Invert array so black pixels equals max value */
-	for (curr_real=x; curr_real < stop_address; ++curr_real) {
-		*curr_real = MAX_VALUE - *curr_real;
+		arg_ev += i * data[i];
+		net_weight += data[i];
 	}
 
-	/* Perform cross correlation and argmax calculation with bounding */
-	for (n=CUTOFF_WINDOW; n < 128-CUTOFF_WINDOW; ++n) {
-		sum = 0;
-		start = (SHIFT_TERM - n > 0) ? SHIFT_TERM - n : 0;
-		curr_ideal = ideal_dist + start + n - SHIFT_TERM;
-		curr_real = x + start;
-
-		while (curr_ideal < stop_address) {
-			sum += *curr_real++ * *curr_ideal++;
-		}
-
-		if (sum > max) {
-			max = sum;
-			argmax = n;
-		}
+	if (!net_weight) {
+		/* We dun messed up! */
+		return DEFAULT_RTN;
 	}
 
-	return argmax;
-
+	return (int16_t)(arg_ev/net_weight) - CNTR;
 }
