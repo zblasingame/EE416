@@ -22,7 +22,7 @@ int main(void) {
 	stop = 5;
 
 	for (i=0; i < 120; ++i) {
-		div = metric(create_signal(start, stop));
+		div = metric_lpf(create_signal(start, stop));
 		printf("[%d, %d]\n", start, stop);
 		printf("The divergence: %d\n", div);
 		++start;
