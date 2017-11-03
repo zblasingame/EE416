@@ -1,0 +1,12 @@
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+indent_style = tab
+
+[*.{py,c}]
+tab_size = 4
+
+[*.json]
+tab_size = 2
