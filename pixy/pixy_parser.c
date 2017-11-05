@@ -13,14 +13,17 @@
  * Gets a command based on vision data.
  *
  * Args:
+ *		cmd (enum command*): Location to store output command data.
+ *		sig (uint_t*): Location to store output siginificance flag.
  *		bytes (uint8_t*): Byte array containing the vision data.
  *			Note the array does not need to be formatted.
  *		size (uint16_t): Number of bytes.
  *
  * Returns:
- *		command: The command for the system.
+ *		int8_t: Error code.
  */
-command get_command(uint8_t* bytes, uint16_t size) {
+
+int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t size) {
 	static const command LUT[4] = {
 		FORWARD,
 		LEFT,
@@ -40,9 +43,9 @@ command get_command(uint8_t* bytes, uint16_t size) {
 	uint8_t* curr_vo_byte;
 	uint8_t* vo_object = (uint8_t*) malloc(sizeof(uint8_t) * VO_SIZE);
 
-	vision_object* vo_objects = (vision_object*) malloc(sizeof(vision_object) * NUM_OBJECTS);
-	vision_object* curr_vo_object = vo_objects;
-	vision_object* tmp = (vision_object*) malloc(sizeof(vision_object));
+	struct vision_object* vo_objects = (struct vision_object*) malloc(sizeof(vision_object) * NUM_OBJECTS);
+	struct vision_object* curr_vo_object = vo_objects;
+	struct vision_object* tmp = (struct vision_object*) malloc(sizeof(vision_object));
 
 	/* code */
 
@@ -80,8 +83,11 @@ command get_command(uint8_t* bytes, uint16_t size) {
 			} while (++bytes < vo_stop);
 
 			tmp = (vision_object*) vo_object;
-			*curr_vo_object++ = *tmp;
-			++num_objects;
+
+			if (tmp->width * tmp->height > SIG_THRESHOLD) {
+				*curr_vo_object++ = *tmp;
+				++num_objects;
+			}
 
 			FLAGS &= ~PYFLAGS_OBJECT_SYNC;
 			FLAGS &= ~PYFLAGS_CHECKSUM;
@@ -93,7 +99,8 @@ command get_command(uint8_t* bytes, uint16_t size) {
 
 
 	if (num_objects < NUM_OBJECTS) {
-		return FORWARD;
+		*sig = 0;
+		return 1;
 	}
 
 	if (vo_objects->x > (vo_objects+1)->x) {
@@ -108,5 +115,8 @@ command get_command(uint8_t* bytes, uint16_t size) {
 	free(vo_objects);
 	free(tmp);
 
-	return LUT[sig_comb];
+	*sig = 1;
+	*cmd = LUT[sig_comb];
+
+	return 1;
 }

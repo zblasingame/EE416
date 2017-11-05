@@ -6,14 +6,8 @@
  *
  */
 
-#include <stdint.h>
 #include <stdio.h>
-
-#define CNTR			64
-#define CUTOFF_WINDOW	0
-#define MAX_VALUE		1
-#define DEFAULT_RTN	    0xF000
-#define LPF_ORDER		5
+#include "metric.h"
 
 /*
  * Mass function evaluation to find centre of signal.
