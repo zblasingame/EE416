@@ -2,7 +2,7 @@
 Collection of code used for EE416
 
 ## Line Scan
-Code is found in the files `line_scan/metric.h` & `line_scan/metric.` All algorithms returns the difference between the measured centre and ideal centre (64). There are currently three algorithms implemented to find the centre of the black line given the data array:
+Code is found in the files `line_scan/metric.h` and `line_scan/metric.` All algorithms returns the difference between the measured centre and ideal centre (64). There are currently three algorithms implemented to find the centre of the black line given the data array:
 
 * Default Approach:
 Uses the notation of the centre of mass of a signal to find the centre. The function prototype is
@@ -26,7 +26,7 @@ int16_t metric_ml(uint16_t* data);
 where `data` is the line scan data array. Returns a value in [-64, 63].
 
 ## Pixy Camera
-Code for the pixy parser is found in the files `pixy/pixy_parser.c` & `pixy/pixy_parser.h`. There are two version of the pixy parser available: one for byte streams and another for 16-bit word streams.
+Code for the pixy parser is found in the files `pixy/pixy_parser.c` and `pixy/pixy_parser.h`. There are two version of the pixy parser available: one for byte streams and another for 16-bit word streams. Each function returns an error code: 1 for normal behaviour, -1 for insufficient array data, and -2 for an invalid signature.
 
 * Byte Stream:
 The function prototype is
