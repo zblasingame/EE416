@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include "pixy_parser.h"
 
-int8_t parse_bytes(enum command* cmd, uint8_t* sig, double* dist, uint8_t* bytes, uint16_t size) {
+int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* bytes, uint16_t size) {
 	/* Here be vars */
 	uint16_t sig_comb;
 	uint8_t FLAGS = 0;
@@ -71,7 +71,9 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, double* dist, uint8_t* bytes
 
 			if (tmp->width * tmp->height > SIG_THRESHOLD) {
 				if (tmp->id == SIGNATURE_CAR) {
-					*dist = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
+					dist->x = (double) tmp->x;
+					dist->y = (double) tmp->y;
+					dist->z = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
 					++num_objects;
 				} else if (tmp->id == SIGNATURE_A || tmp->id == SIGNATURE_B) {
 					*curr_vo_object++ = *tmp;
@@ -132,7 +134,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, double* dist, uint8_t* bytes
 	return 1;
 }
 
-int8_t parse_words(enum command* cmd, uint8_t* sig, double* dist, uint16_t* words, uint16_t size) {
+int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t* words, uint16_t size) {
 	/* Here be vars */
 	uint16_t sig_comb;
 	uint8_t FLAGS = 0;
@@ -192,7 +194,9 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, double* dist, uint16_t* word
 
 			if (tmp->width * tmp->height > SIG_THRESHOLD) {
 				if (tmp->id == SIGNATURE_CAR) {
-					*dist = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
+					dist->x = (double) tmp->x;
+					dist->y = (double) tmp->y;
+					dist->z = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
 					++num_objects;
 				} else if (tmp->id == SIGNATURE_A || tmp->id == SIGNATURE_B) {
 					*curr_vo_object++ = *tmp;

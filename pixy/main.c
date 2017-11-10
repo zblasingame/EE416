@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "pixy_parser.h"
 
 int main(void) {
@@ -13,11 +12,11 @@ int main(void) {
 
 	enum command command = RIGHT;
 	uint8_t sig = 0;
-	double dist = 0.0;
+	struct vec3 dist = {0, 0, 0};
 
 	parse_bytes(&command, &sig, &dist, bytes, 84);
 
 	printf("Command: %d\n", command);
 	printf("Signifigance: %d\n", sig);
-	printf("Distance from Car: %.2f\n", dist);
+	printf("Distance from Car: (%.2f, %.2f, %.2f)\n", dist.x, dist.y, dist.z);
 }

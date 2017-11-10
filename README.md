@@ -31,13 +31,13 @@ Code for the pixy parser is found in the files `pixy/pixy_parser.c` and `pixy/pi
 * Byte Stream:
 The function prototype is
 ```c
-int8_t parse_bytes(enum command* command, uint8_t* significance, double* dist, uint8_t* bytes, uint16_t size);
+int8_t parse_bytes(enum command* command, uint8_t* significance, struct vec3* dist, uint8_t* bytes, uint16_t size);
 ```
 where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD) found from the markers will be stored; `significance` is the location of the significance determined via the size of the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `bytes` is the byte array; and `size` is the size of the array.
 
 * Word Stream:
 The function prototype is
 ```c
-int8_t parse_words(enum command* command, uint8_t* significance, double* dist, uint8_t* words, uint16_t size);
+int8_t parse_words(enum command* command, uint8_t* significance, struct vec3* dist, uint8_t* words, uint16_t size);
 ```
 where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD) found from the markers will be stored; `significance` is the location of the significance determined via the size of the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `words` is the 16-bit word array; and `size` is the size of the array.
