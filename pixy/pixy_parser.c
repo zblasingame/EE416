@@ -15,6 +15,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 	uint8_t FLAGS = 0;
 	uint16_t checksum;
 	uint8_t num_objects = 0;
+	int8_t error_code = 1;
 
 	uint8_t* stop_address = bytes + size;
 	uint8_t* vo_stop;
@@ -54,10 +55,8 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 				}
 			} else {
 				/* error data clipped prematurely */
-				free(vo_object);
-				free(vo_objects);
-
-				return -1;
+				error_code = -1;
+				goto EXIT;
 			}
 		} else if (FLAGS & PYFLAGS_CHECKSUM) {
 			vo_stop = bytes + VO_BYTE_SIZE;
@@ -80,10 +79,8 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 					++num_objects;
 				} else {
 					/* invalid signature */
-					free(vo_object);
-					free(vo_objects);
-
-					return -2;
+					error_code = -2;
+					goto EXIT;
 				}
 			}
 
@@ -94,13 +91,9 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 		}
 	} while (bytes < stop_address - 1 && num_objects < NUM_OBJECTS);
 
-
 	if (num_objects < NUM_OBJECTS) {
 		*sig = 0;
-		free(vo_object);
-		free(vo_objects);
-
-		return 1;
+		goto EXIT;
 	}
 
 	if (vo_objects->x > (vo_objects+1)->x) {
@@ -111,6 +104,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 
 	*sig = 1;
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
+
 	switch (sig_comb) {
 		case MAKE_WORD(SIGNATURE_A, SIGNATURE_A):
 			*cmd = FORWARD;
@@ -128,10 +122,11 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 			*cmd = FORWARD;
 	}
 
-	free(vo_object);
-	free(vo_objects);
+	EXIT:
+		free(vo_object);
+		free(vo_objects);
 
-	return 1;
+		return error_code;
 }
 
 int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t* words, uint16_t size) {
@@ -140,6 +135,7 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 	uint8_t FLAGS = 0;
 	uint16_t checksum;
 	uint8_t num_objects = 0;
+	int8_t error_code = 1;
 
 	uint16_t* stop_address = words + size;
 	uint16_t* vo_stop;
@@ -177,10 +173,8 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 				}
 			} else {
 				/* error data clipped prematurely */
-				free(vo_object);
-				free(vo_objects);
-
-				return -1;
+				error_code =  -1;
+				goto EXIT;
 			}
 		} else if (FLAGS & PYFLAGS_CHECKSUM) {
 			vo_stop = words + VO_SIZE;
@@ -203,10 +197,8 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 					++num_objects;
 				} else {
 					/* invalid signature */
-					free(vo_object);
-					free(vo_objects);
-
-					return -2;
+					error_code = -2;
+					goto EXIT;
 				}
 			}
 
@@ -218,13 +210,9 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 
 	} while (words < stop_address && num_objects < NUM_OBJECTS);
 
-
 	if (num_objects < NUM_OBJECTS) {
 		*sig = 0;
-		free(vo_object);
-		free(vo_objects);
-
-		return 1;
+		goto EXIT;
 	}
 
 	if (vo_objects->x > (vo_objects+1)->x) {
@@ -235,6 +223,7 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 
 	*sig = 1;
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
+
 	switch (sig_comb) {
 		case MAKE_WORD(SIGNATURE_A, SIGNATURE_A):
 			*cmd = FORWARD;
@@ -252,8 +241,9 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 			*cmd = FORWARD;
 	}
 
-	free(vo_object);
-	free(vo_objects);
+	EXIT:
+		free(vo_object);
+		free(vo_objects);
 
-	return 1;
+		return error_code;
 }
