@@ -1,47 +1,47 @@
 [
   {
-    "sync": "0xaa56",
-    "checksum": "0x2371",
-    "id": "0x0",
-    "x": "0x445",
-    "y": "0x3dc",
-    "width": "0xd61",
-    "height": "0xdef"
+    "sync": "0xaa55",
+    "checksum": "0x1e76",
+    "id": "0x13",
+    "x": "0xf26",
+    "y": "0xf0",
+    "width": "0x21",
+    "height": "0xe2c"
   },
   {
-    "sync": "0xaa56",
-    "checksum": "0x177e",
-    "id": "0x1",
-    "x": "0x392",
-    "y": "0x75",
-    "width": "0xbc3",
-    "height": "0x7b3"
+    "sync": "0xaa55",
+    "checksum": "0x153c",
+    "id": "0x13",
+    "x": "0x191",
+    "y": "0xb52",
+    "width": "0x83c",
+    "height": "0xa"
   },
   {
-    "sync": "0xaa56",
-    "checksum": "0x2810",
-    "id": "0x0",
-    "x": "0x90a",
-    "y": "0xdef",
-    "width": "0xdb1",
-    "height": "0x366"
+    "sync": "0xaa55",
+    "checksum": "0x1ceb",
+    "id": "0x4",
+    "x": "0x7ae",
+    "y": "0xb04",
+    "width": "0x969",
+    "height": "0xcc"
   },
   {
-    "sync": "0xaa56",
-    "checksum": "0x1601",
-    "id": "0x0",
-    "x": "0x2a7",
-    "y": "0x9b7",
-    "width": "0x341",
-    "height": "0x662"
+    "sync": "0xaa55",
+    "checksum": "0x2961",
+    "id": "0x12",
+    "x": "0xa30",
+    "y": "0xf5a",
+    "width": "0x14",
+    "height": "0xfb1"
   },
   {
-    "sync": "0xaa56",
-    "checksum": "0xd46",
-    "id": "0x0",
-    "x": "0x437",
-    "y": "0x33e",
-    "width": "0x1e7",
-    "height": "0x3ea"
+    "sync": "0xaa55",
+    "checksum": "0x295d",
+    "id": "0x4",
+    "x": "0x9c6",
+    "y": "0xa04",
+    "width": "0xe5b",
+    "height": "0x734"
   }
 ]

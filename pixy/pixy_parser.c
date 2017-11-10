@@ -9,28 +9,7 @@
 #include <stdio.h>
 #include "pixy_parser.h"
 
-/*
- * Gets a command based on vision data.
- *
- * Args:
- *		cmd (enum command*): Location to store output command data.
- *		sig (uint_t*): Location to store output siginificance flag.
- *		bytes (uint8_t*): Byte array containing the vision data.
- *			Note the array does not need to be formatted.
- *		size (uint16_t): Number of bytes.
- *
- * Returns:
- *		int8_t: Error code.
- */
-
-int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t size) {
-	static const command LUT[4] = {
-		FORWARD,
-		LEFT,
-		RIGHT,
-		BACKWARD
-	};
-
+int8_t parse_bytes(enum command* cmd, uint8_t* sig, double* dist, uint8_t* bytes, uint16_t size) {
 	/* Here be vars */
 	uint16_t sig_comb;
 	uint8_t FLAGS = 0;
@@ -41,11 +20,11 @@ int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t siz
 	uint8_t* vo_stop;
 	uint8_t* curr_byte;
 	uint8_t* curr_vo_byte;
-	uint8_t* vo_object = (uint8_t*) malloc(sizeof(uint8_t) * VO_SIZE);
+	uint8_t* vo_object = (uint8_t*) malloc(sizeof(uint8_t) * VO_BYTE_SIZE);
 
-	struct vision_object* vo_objects = (struct vision_object*) malloc(sizeof(vision_object) * NUM_OBJECTS);
+	struct vision_object* vo_objects = (struct vision_object*) malloc(sizeof(struct vision_object) * NUM_OBJECTS);
 	struct vision_object* curr_vo_object = vo_objects;
-	struct vision_object* tmp = (struct vision_object*) malloc(sizeof(vision_object));
+	struct vision_object* tmp;
 
 	/* code */
 
@@ -54,11 +33,13 @@ int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t siz
 		if (!(FLAGS & PYFLAGS_FRAME_SYNC) && MAKE_WORD(*(bytes+1), *bytes) == FRAME_SYNC) {
 			FLAGS |= PYFLAGS_FRAME_SYNC;
 			bytes += 2;
-		} else if (!(FLAGS & PYFLAGS_OBJECT_SYNC) && (FLAGS & PYFLAGS_FRAME_SYNC) && MAKE_WORD(*(bytes+1), *bytes) == SYNC_WORD) {
+		} else if (!(FLAGS & PYFLAGS_OBJECT_SYNC)
+				&& (FLAGS & PYFLAGS_FRAME_SYNC)
+				&& (MAKE_WORD(*(bytes+1), *bytes) == OS_SYNC || MAKE_WORD(*(bytes+1), *bytes) == CC_SYNC)) {
 			FLAGS |= PYFLAGS_OBJECT_SYNC;
 			bytes += 2;
 		} else if (!(FLAGS & PYFLAGS_CHECKSUM) && (FLAGS & PYFLAGS_OBJECT_SYNC)) {
-			vo_stop = bytes + VO_SIZE + 2;
+			vo_stop = bytes + VO_BYTE_SIZE + 2;
 			if (vo_stop <= stop_address) {
 				checksum = 0;
 				for (curr_byte=bytes+2; curr_byte < vo_stop - 1; curr_byte += 2) {
@@ -69,24 +50,39 @@ int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t siz
 					bytes += 2;
 				} else {
 					FLAGS &= ~PYFLAGS_OBJECT_SYNC;
-					bytes += VO_SIZE;
+					bytes += VO_BYTE_SIZE;
 				}
 			} else {
-				++bytes;
+				/* error data clipped prematurely */
+				free(vo_object);
+				free(vo_objects);
+
+				return -1;
 			}
 		} else if (FLAGS & PYFLAGS_CHECKSUM) {
-			vo_stop = bytes + VO_SIZE;
+			vo_stop = bytes + VO_BYTE_SIZE;
 			curr_vo_byte = vo_object;
 
-			do {
-				*curr_vo_byte++ = *bytes;
-			} while (++bytes < vo_stop);
+			while (bytes < vo_stop) {
+				*curr_vo_byte++ = *bytes++;
+			}
 
-			tmp = (vision_object*) vo_object;
+			tmp = (struct vision_object*) vo_object;
 
 			if (tmp->width * tmp->height > SIG_THRESHOLD) {
-				*curr_vo_object++ = *tmp;
-				++num_objects;
+				if (tmp->id == SIGNATURE_CAR) {
+					*dist = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
+					++num_objects;
+				} else if (tmp->id == SIGNATURE_A || tmp->id == SIGNATURE_B) {
+					*curr_vo_object++ = *tmp;
+					++num_objects;
+				} else {
+					/* invalid signature */
+					free(vo_object);
+					free(vo_objects);
+
+					return -2;
+				}
 			}
 
 			FLAGS &= ~PYFLAGS_OBJECT_SYNC;
@@ -94,12 +90,14 @@ int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t siz
 		} else {
 			++bytes;
 		}
-
 	} while (bytes < stop_address - 1 && num_objects < NUM_OBJECTS);
 
 
 	if (num_objects < NUM_OBJECTS) {
 		*sig = 0;
+		free(vo_object);
+		free(vo_objects);
+
 		return 1;
 	}
 
@@ -109,14 +107,149 @@ int8_t get_command(enum command* cmd, uint8_t* sig, uint8_t* bytes, uint16_t siz
 		*(vo_objects+1) = *tmp;
 	}
 
-	sig_comb = (vo_objects->id<<1) + (vo_objects+1)->id;
+	*sig = 1;
+	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
+	switch (sig_comb) {
+		case MAKE_WORD(SIGNATURE_A, SIGNATURE_A):
+			*cmd = FORWARD;
+			break;
+		case MAKE_WORD(SIGNATURE_A, SIGNATURE_B):
+			*cmd = RIGHT;
+			break;
+		case MAKE_WORD(SIGNATURE_B, SIGNATURE_A):
+			*cmd = LEFT;
+			break;
+		case MAKE_WORD(SIGNATURE_B, SIGNATURE_B):
+			*cmd = BACKWARD;
+			break;
+		default:
+			*cmd = FORWARD;
+	}
 
 	free(vo_object);
 	free(vo_objects);
-	free(tmp);
+
+	return 1;
+}
+
+int8_t parse_words(enum command* cmd, uint8_t* sig, double* dist, uint16_t* words, uint16_t size) {
+	/* Here be vars */
+	uint16_t sig_comb;
+	uint8_t FLAGS = 0;
+	uint16_t checksum;
+	uint8_t num_objects = 0;
+
+	uint16_t* stop_address = words + size;
+	uint16_t* vo_stop;
+	uint16_t* curr_word;
+	uint16_t* curr_vo_word;
+	uint16_t* vo_object = (uint16_t*) malloc(sizeof(uint16_t) * VO_SIZE);
+
+	struct vision_object* vo_objects = (struct vision_object*) malloc(sizeof(struct vision_object) * NUM_OBJECTS);
+	struct vision_object* curr_vo_object = vo_objects;
+	struct vision_object* tmp;
+
+	/* code */
+
+	/* iterate through all of the bytes */
+	do {
+		if (!(FLAGS & PYFLAGS_FRAME_SYNC) && *words == FRAME_SYNC) {
+			FLAGS |= PYFLAGS_FRAME_SYNC;
+			++words;
+		} else if (!(FLAGS & PYFLAGS_OBJECT_SYNC) && (FLAGS & PYFLAGS_FRAME_SYNC) && *words == OS_SYNC) {
+			FLAGS |= PYFLAGS_OBJECT_SYNC;
+			++words;
+		} else if (!(FLAGS & PYFLAGS_CHECKSUM) && (FLAGS & PYFLAGS_OBJECT_SYNC)) {
+			vo_stop = words + VO_SIZE + 1;
+			if (vo_stop <= stop_address) {
+				checksum = 0;
+				for (curr_word=words+1; curr_word < vo_stop; ++curr_word) {
+					checksum += *curr_word;
+				}
+				if (*words == checksum) {
+					FLAGS |= PYFLAGS_CHECKSUM;
+					++words;
+				} else {
+					FLAGS &= ~PYFLAGS_OBJECT_SYNC;
+					words += VO_SIZE;
+				}
+			} else {
+				/* error data clipped prematurely */
+				free(vo_object);
+				free(vo_objects);
+
+				return -1;
+			}
+		} else if (FLAGS & PYFLAGS_CHECKSUM) {
+			vo_stop = words + VO_SIZE;
+			curr_vo_word = vo_object;
+
+			while (words < vo_stop) {
+				*curr_vo_word++ = *words++;
+			}
+
+			tmp = (struct vision_object*) vo_object;
+
+			if (tmp->width * tmp->height > SIG_THRESHOLD) {
+				if (tmp->id == SIGNATURE_CAR) {
+					*dist = ((double)INIT_AREA_X_DEPTH)/((double)(tmp->width * tmp->height));
+					++num_objects;
+				} else if (tmp->id == SIGNATURE_A || tmp->id == SIGNATURE_B) {
+					*curr_vo_object++ = *tmp;
+					++num_objects;
+				} else {
+					/* invalid signature */
+					free(vo_object);
+					free(vo_objects);
+
+					return -2;
+				}
+			}
+
+			FLAGS &= ~PYFLAGS_OBJECT_SYNC;
+			FLAGS &= ~PYFLAGS_CHECKSUM;
+		} else {
+			++words;
+		}
+
+	} while (words < stop_address && num_objects < NUM_OBJECTS);
+
+
+	if (num_objects < NUM_OBJECTS) {
+		*sig = 0;
+		free(vo_object);
+		free(vo_objects);
+
+		return 1;
+	}
+
+	if (vo_objects->x > (vo_objects+1)->x) {
+		*tmp = *vo_objects;
+		*vo_objects = *(vo_objects+1);
+		*(vo_objects+1) = *tmp;
+	}
 
 	*sig = 1;
-	*cmd = LUT[sig_comb];
+	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
+	switch (sig_comb) {
+		case MAKE_WORD(SIGNATURE_A, SIGNATURE_A):
+			*cmd = FORWARD;
+			break;
+		case MAKE_WORD(SIGNATURE_A, SIGNATURE_B):
+			*cmd = RIGHT;
+			break;
+		case MAKE_WORD(SIGNATURE_B, SIGNATURE_A):
+			*cmd = LEFT;
+			break;
+		case MAKE_WORD(SIGNATURE_B, SIGNATURE_B):
+			*cmd = BACKWARD;
+			break;
+		default:
+			*cmd = FORWARD;
+	}
+
+	free(vo_object);
+	free(vo_objects);
 
 	return 1;
 }

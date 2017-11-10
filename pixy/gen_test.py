@@ -5,9 +5,9 @@ num_objects = 5
 random_garabage = 6
 
 object_gen = lambda: {
-    'sync': hex(0xAA56),
+    'sync': hex(0xAA55),
     'checksum': hex(0xFFFF),
-    'id': hex(np.random.randint(2, dtype=np.uint16)),
+    'id': hex(np.random.choice([0x13, 0x12, 0x4])),
     'x': hex(np.random.randint(0x0FFF, dtype=np.uint16)),
     'y': hex(np.random.randint(0x0FFF, dtype=np.uint16)),
     'width': hex(np.random.randint(0x0FFF, dtype=np.uint16)),
