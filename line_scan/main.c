@@ -19,10 +19,10 @@ int main(void) {
 	int16_t div;
 
 	start = 0;
-	stop = 5;
+	stop = 30;
 
 	for (i=0; i < 120; ++i) {
-		div = metric_lpf(create_signal(start, stop));
+		div = metric_ml(create_signal(start, stop));
 		printf("[%d, %d]\n", start, stop);
 		printf("The divergence: %d\n", div);
 		++start;
@@ -38,9 +38,9 @@ uint16_t* create_signal(uint16_t start, uint16_t stop) {
 
 	for (i=0; i < 128; ++i) {
 		if ((i > start) && (i < stop)) {
-			*(signal+i) = 1;
-		} else {
 			*(signal+i) = 0;
+		} else {
+			*(signal+i) = 0xFFFF;
 		}
 	}
 

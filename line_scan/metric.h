@@ -28,5 +28,6 @@
  */
 int16_t metric(uint16_t* x);
 int16_t metric_lpf(uint16_t* x);
+int16_t metric_ml(uint16_t* x);
 
 #endif /* ifndef METRIC_H */
