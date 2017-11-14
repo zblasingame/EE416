@@ -22,7 +22,8 @@
 #define PYFLAGS_OBJECT_SYNC		2U
 #define PYFLAGS_CHECKSUM		4U
 #define NUM_OBJECTS				3
-#define SIG_THRESHOLD			0x00FF
+#define NUM_MARKERS				2
+#define SIG_THRESHOLD			0x000F
 #define SIGNATURE_A				0x12
 #define SIGNATURE_B				0x13
 #define SIGNATURE_CAR			0x4

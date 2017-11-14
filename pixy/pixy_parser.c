@@ -91,7 +91,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 		}
 	} while (bytes < stop_address - 1 && num_objects < NUM_OBJECTS);
 
-	if (num_objects < NUM_OBJECTS) {
+	if ((curr_vo_object - vo_objects) < NUM_MARKERS) {
 		*sig = 0;
 		goto EXIT;
 	}
@@ -154,11 +154,15 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 		if (!(FLAGS & PYFLAGS_FRAME_SYNC) && *words == FRAME_SYNC) {
 			FLAGS |= PYFLAGS_FRAME_SYNC;
 			++words;
-		} else if (!(FLAGS & PYFLAGS_OBJECT_SYNC) && (FLAGS & PYFLAGS_FRAME_SYNC) && *words == OS_SYNC) {
+		} else if (!(FLAGS & PYFLAGS_OBJECT_SYNC) && (FLAGS & PYFLAGS_FRAME_SYNC)
+				&& (*words == OS_SYNC || *words == CC_SYNC)) {
 			FLAGS |= PYFLAGS_OBJECT_SYNC;
 			++words;
 		} else if (!(FLAGS & PYFLAGS_CHECKSUM) && (FLAGS & PYFLAGS_OBJECT_SYNC)) {
 			vo_stop = words + VO_SIZE + 1;
+			FLAGS |= PYFLAGS_CHECKSUM;
+			++words;
+			continue;
 			if (vo_stop <= stop_address) {
 				checksum = 0;
 				for (curr_word=words+1; curr_word < vo_stop; ++curr_word) {
@@ -210,7 +214,7 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 
 	} while (words < stop_address && num_objects < NUM_OBJECTS);
 
-	if (num_objects < NUM_OBJECTS) {
+	if ((curr_vo_object - vo_objects) < NUM_MARKERS) {
 		*sig = 0;
 		goto EXIT;
 	}
