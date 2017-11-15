@@ -105,18 +105,20 @@ int16_t metric_ml(uint16_t* data) {
 }
 
 void get_line_type(enum line_type* line_type, uint16_t* data) {
-	uint8_t num_black = 0;
-	uint8_t stop = data + 128;
+	uint16_t num_black = 0;
+	uint16_t* stop = data + 128;
 
 	do {
-		num_black += *data++;
-	} while (line_type < stop);
+		num_black += (*data++ > IS_BLACK_THR) ? 1 : 0;
+	} while (data < stop);
 
 	if (num_black > INTER_THR) {
 		*line_type = INTERSECTION;
-	} else if(num_black > STOP) {
+	} else if (num_black > STOP_THR) {
 		*line_type = STOP;
-	} else {
+	} else if (num_black > LINE_THR) {
 		*line_type = LINE;
+	} else {
+		*line_type = NOLINE;
 	}
 }

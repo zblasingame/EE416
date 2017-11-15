@@ -18,10 +18,10 @@
 #define LINE_THR		24
 #define STOP_THR		70
 #define INTER_THR		100
-#define LINET_THR		0x00FF
+#define IS_BLACK_THR	0x00FF
 
 enum line_type {
-	LINE, STOP, INTERSECTION
+	LINE, STOP, INTERSECTION, NOLINE
 };
 
 /*
