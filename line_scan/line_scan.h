@@ -12,10 +12,10 @@
 #define METRIC_H
 
 #define CNTR			64
-#define CUTOFF_WINDOW	0
+#define CUTOFF_WINDOW   12
 #define MAX_VALUE		1
-#define DEFAULT_RTN	    0dataF000
 #define LPF_ORDER		5
+#define LINE_THR		24
 #define STOP_THR		70
 #define INTER_THR		100
 #define LINET_THR		0x00FF
@@ -29,12 +29,13 @@ enum line_type {
  *
  * Args:
  *		data (uint16_t*): Measured distribution.
+ *		default_val (int16_t): Default value if error.
  *
  * Returns:
  *		int16_t: Correction Term.
  */
-int16_t metric(uint16_t* data);
-int16_t metric_lpf(uint16_t* data);
+int16_t metric(uint16_t* data, int16_t default_val);
+int16_t metric_lpf(uint16_t* data, int16_t default_val);
 int16_t metric_ml(uint16_t* data);
 
 /*
