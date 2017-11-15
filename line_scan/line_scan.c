@@ -131,13 +131,28 @@ int16_t metric_ml(uint16_t* data) {
 
 	/* Arthmetic */
 	for (i=0; i<128; ++i) {
-		/* printf("%.6f, %.2f\n", weights[i], (double)data[i]); */
 		centre += weights[i] * (double) data[i];
-		/* printf("%.6f\n", centre); */
 	}
 	centre += weights[i];
 
 	printf("%.2f\n", centre);
 
 	return (int16_t)(centre) - CNTR;
+}
+
+void get_line_type(enum line_type* line_type, uint16_t* data) {
+	uint8_t num_black = 0;
+	uint8_t stop = data + 128;
+
+	do {
+		num_black += *data++;
+	} while (line_type < stop);
+
+	if (num_black > INTER_THR) {
+		*line_type = INTERSECTION;
+	} else if(num_black > STOP) {
+		*line_type = STOP;
+	} else {
+		*line_type = LINE;
+	}
 }
