@@ -9,7 +9,7 @@
 #include<stdint.h>
 #include<stdio.h>
 
-#include "metric.h"
+#include "line_scan.h"
 
 uint16_t* create_signal(uint16_t start, uint16_t stop);
 
@@ -17,6 +17,8 @@ int main(void) {
 	uint16_t start, stop;
 	uint16_t i;
 	int16_t div;
+	enum line_type data[5] = {STOP, STOP, STOP, LINE, LINE};
+	enum line_type mode;
 
 	start = 0;
 	stop = 30;
@@ -28,6 +30,10 @@ int main(void) {
 		++start;
 		++stop;
 	}
+
+	get_mode(&mode, data, 5);
+	printf("Mode of data = %d\n", mode);
+	printf("Actual mode of data = %d\n", STOP);
 
 	return 0;
 }

@@ -122,3 +122,25 @@ void get_line_type(enum line_type* line_type, uint16_t* data) {
 		*line_type = NOLINE;
 	}
 }
+
+void get_mode(enum line_type* dest, enum line_type* data, uint8_t size) {
+	/* Manually define occurance array */
+	uint8_t occs[NUM_TYPES] = {0};
+	uint8_t i = 0;
+	uint8_t max_occ = 0;
+	enum line_type* stop = data + size;
+	enum line_type mode = NOLINE;
+
+	do {
+		++occs[*data++];
+	} while (data < stop);
+
+	for (i=0; i<NUM_TYPES; ++i) {
+		if (occs[i] > max_occ) {
+			mode = (enum line_type) i;
+			max_occ = occs[i];
+		}
+	}
+
+	*dest = mode;
+}

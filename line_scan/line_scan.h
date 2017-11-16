@@ -19,9 +19,10 @@
 #define STOP_THR		70
 #define INTER_THR		100
 #define IS_BLACK_THR	0x00FF
+#define NUM_TYPES		4
 
 enum line_type {
-	LINE, STOP, INTERSECTION, NOLINE
+	NOLINE, LINE, STOP, INTERSECTION
 };
 
 /*
@@ -43,8 +44,18 @@ int16_t metric_ml(uint16_t* data);
  *
  * Args:
  *		line_type (enum line_type*): Location to store line type.
- *		data (uint16_t*): Line scan pidatael data.
+ *		data (uint16_t*): Line scan data.
  */
 void get_line_type(enum line_type* line_type, uint16_t* data);
+
+/*
+ * Get most likely line type from array.
+ *
+ * Args:
+ *		dest (enum line_type*): Location to store output.
+ *		data (enum line_type*): Array of enum line_type.
+ *		size (uint8_t): Size of array.
+ */
+void get_mode(enum line_type* dest, enum line_type* data, uint8_t size);
 
 #endif /* ifndef METRIC_H */
