@@ -109,7 +109,7 @@ void get_line_type(enum line_type* line_type, uint16_t* data) {
 	uint16_t* stop = data + 128;
 
 	do {
-		num_black += (*data++ > IS_BLACK_THR) ? 1 : 0;
+		num_black += *data++ < IS_BLACK_THR;
 	} while (data < stop);
 
 	if (num_black > INTER_THR) {
