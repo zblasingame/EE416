@@ -31,19 +31,25 @@ void get_line_type(enum line_type* line_type, uint16_t* data);
 ```
 where `data` is the line scan data array and `line_type` is the location for the output. The possible output values are `INTERSECTION`, `LINE`, and `STOP`.
 
+A function is provided to calculate the mode line type. The function prototype is
+```c
+get_mode(enum line_type* dest, enum line_type* data, uint8_t size);
+```
+where `dest` is the location to store the output, `data` is an array of `enum line_type`, and `size` is the size of the `data` array.
+
 ## Pixy Camera
 Code for the pixy parser is found in the files `pixy/pixy_parser.c` and `pixy/pixy_parser.h`. There are two version of the pixy parser available: one for byte streams and another for 16-bit word streams. Each function returns an error code: 1 for normal behaviour, -1 for insufficient array data, and -2 for an invalid signature.
 
 * Byte Stream:
 The function prototype is
 ```c
-int8_t parse_bytes(enum command* command, uint8_t* significance, struct vec3* dist, uint8_t* bytes, uint16_t size);
+int8_t parse_bytes(enum command* command, struct vec3* dist, uint8_t* bytes, uint16_t size);
 ```
-where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD) found from the markers will be stored; `significance` is the location of the significance determined via the size of the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `bytes` is the byte array; and `size` is the size of the array.
+where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD, NONE) found from the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `bytes` is the byte array; and `size` is the size of the array.
 
 * Word Stream:
 The function prototype is
 ```c
-int8_t parse_words(enum command* command, uint8_t* significance, struct vec3* dist, uint8_t* words, uint16_t size);
+int8_t parse_words(enum command* command, struct vec3* dist, uint8_t* words, uint16_t size);
 ```
-where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD) found from the markers will be stored; `significance` is the location of the significance determined via the size of the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `words` is the 16-bit word array; and `size` is the size of the array.
+where `command` is the location of where the command (FORWARD, LEFT, RIGHT, BACKWARD) found from the markers will be stored; `dist` is the location where the distance between the camera and the other vehilce will be stored; `words` is the 16-bit word array; and `size` is the size of the array.

@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include "pixy_parser.h"
 
-int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* bytes, uint16_t size) {
+int8_t parse_bytes(enum command* cmd, struct vec3* dist, uint8_t* bytes, uint16_t size) {
 	/* Here be vars */
 	uint16_t sig_comb;
 	uint8_t FLAGS = 0;
@@ -92,7 +92,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 	} while (bytes < stop_address - 1 && num_objects < NUM_OBJECTS);
 
 	if ((curr_vo_object - vo_objects) < NUM_MARKERS) {
-		*sig = 0;
+		*cmd = NONE;
 		goto EXIT;
 	}
 
@@ -102,7 +102,6 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 		*(vo_objects+1) = *tmp;
 	}
 
-	*sig = 1;
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
 
 	switch (sig_comb) {
@@ -119,7 +118,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 			*cmd = BACKWARD;
 			break;
 		default:
-			*cmd = FORWARD;
+			*cmd = NONE;
 	}
 
 	EXIT:
@@ -129,7 +128,7 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
 		return error_code;
 }
 
-int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t* words, uint16_t size) {
+int8_t parse_words(enum command* cmd, struct vec3* dist, uint16_t* words, uint16_t size) {
 	/* Here be vars */
 	uint16_t sig_comb;
 	uint8_t FLAGS = 0;
@@ -215,7 +214,7 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 	} while (words < stop_address && num_objects < NUM_OBJECTS);
 
 	if ((curr_vo_object - vo_objects) < NUM_MARKERS) {
-		*sig = 0;
+		*cmd = NONE;
 		goto EXIT;
 	}
 
@@ -225,7 +224,6 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 		*(vo_objects+1) = *tmp;
 	}
 
-	*sig = 1;
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
 
 	switch (sig_comb) {
@@ -242,7 +240,7 @@ int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t*
 			*cmd = BACKWARD;
 			break;
 		default:
-			*cmd = FORWARD;
+			*cmd = NONE;
 	}
 
 	EXIT:

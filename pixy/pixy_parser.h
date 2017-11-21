@@ -35,7 +35,7 @@
 /* #define MAKE_WORD(y, x) (((uint16_t) (x) << 8) | (y)) */
 
 /* List of possible commands */
-enum command {FORWARD, LEFT, RIGHT, BACKWARD};
+enum command {FORWARD, LEFT, RIGHT, BACKWARD, NONE};
 
 /* Holds vision data */
 struct vision_object {
@@ -51,7 +51,6 @@ struct vec3 {
  *
  * Args:
  *		cmd (enum command*): Location to store output command data.
- *		sig (uint8_t*): Location to store output siginificance flag.
  *		dist (struct vec3*): Location to store output of vehicle distance for collision avoidance.
  *		bytes (uint8_t*): Byte array containing the vision data.
  *			Note the array does not need to be formatted.
@@ -60,14 +59,13 @@ struct vec3 {
  * Returns:
  *		int8_t: Error code.
  */
-int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* bytes, uint16_t size);
+int8_t parse_bytes(enum command* cmd, struct vec3* dist, uint8_t* bytes, uint16_t size);
 
 /*
  * Parse pixy data from 16 bit word stream.
  *
  * Args:
  *		cmd (enum command*): Location to store output command data.
- *		sig (uint_t*): Location to store output siginificance flag.
  *		words (uint16_t*): Word array containing the vision data.
  *		dist (struct vec3*): Location to store output of vehicle distance for collision avoidance.
  *			Note the array does not need to be formatted.
@@ -76,6 +74,6 @@ int8_t parse_bytes(enum command* cmd, uint8_t* sig, struct vec3* dist, uint8_t* 
  * Returns:
  *		int8_t: Error code.
  */
-int8_t parse_words(enum command* cmd, uint8_t* sig, struct vec3* dist, uint16_t* words, uint16_t size);
+int8_t parse_words(enum command* cmd, struct vec3* dist, uint16_t* words, uint16_t size);
 
 #endif /* PIXY_PARSER_H */
