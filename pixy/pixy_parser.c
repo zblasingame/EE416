@@ -101,6 +101,11 @@ int8_t parse_bytes(enum command* cmd, struct vec3* dist, uint8_t* bytes, uint16_
 		*vo_objects = *(vo_objects+1);
 		*(vo_objects+1) = *tmp;
 	}
+	
+	if ((vo_objects+1)->x - vo_objects->x < X_THRESHOLD) {
+		*cmd = NONE;
+		goto EXIT;
+	}
 
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
 
@@ -222,6 +227,11 @@ int8_t parse_words(enum command* cmd, struct vec3* dist, uint16_t* words, uint16
 		*tmp = *vo_objects;
 		*vo_objects = *(vo_objects+1);
 		*(vo_objects+1) = *tmp;
+	}
+	
+	if ((vo_objects+1)->x - vo_objects->x < X_THRESHOLD) {
+		*cmd = NONE;
+		goto EXIT;
 	}
 
 	sig_comb = (vo_objects->id << 8) | (vo_objects+1)->id;
