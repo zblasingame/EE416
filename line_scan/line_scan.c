@@ -44,13 +44,11 @@ int16_t metric_lpf(uint16_t* data, int16_t default_val) {
 	/* Low pass filter */
 	for (n=CUTOFF_WINDOW; n<128-CUTOFF_WINDOW; ++n) {
 		lpf_data[n] = 0;
-		lpf_order = n - (LPF_ORDER+1) > 0 ? LPF_ORDER + 1 : n;
+		lpf_order = n - ((LPF_ORDER/2)+1) > 0 ? LPF_ORDER + 1 : n;
 
 		for (i=0; i<lpf_order; ++i) {
-			lpf_data[n] += data[n-i];
+			lpf_data[n] += data[n-i + (lpf_order/2)];
 		}
-		/* lpf_data[n] /= LPF_ORDER + 1; */
-
 	}
 
 	/* Find max value */
@@ -104,24 +102,75 @@ int16_t metric_ml(uint16_t* data) {
 	return (int16_t)(centre) - CNTR;
 }
 
-void get_line_type(enum line_type* line_type, uint16_t* data) {
-	uint16_t num_black = 0;
+/* void get_line_type(enum line_type* line_type, uint16_t* data) { */
+/* 	uint16_t num_black = 0; */
+/* 	uint16_t* stop = data + 128; */
+
+/* 	do { */
+/* 		num_black += *data++ < IS_BLACK_THR; */
+/* 	} while (data < stop); */
+
+/* 	if (num_black > INTER_THR) { */
+/* 		*line_type = INTERSECTION; */
+/* 	} else if (num_black > STOP_THR) { */
+/* 		*line_type = STOP; */
+/* 	} else if (num_black > LINE_THR) { */
+/* 		*line_type = LINE; */
+/* 	} else { */
+/* 		*line_type = NOLINE; */
+/* 	} */
+/* } */
+
+int8_t get_line_type(enum line_type* line_type, uint16_t* data) {
+	uint8_t num_blobs = 0;
+	uint8_t is_high = 0;
+	uint8_t width = 0;
+	uint8_t noise_width = 0;
+	uint8_t max_width = 0;
 	uint16_t* stop = data + 128;
 
 	do {
-		num_black += *data++ < IS_BLACK_THR;
-	} while (data < stop);
+		if (*data) {
+			if (!is_high) {
+				is_high = 1;
+				noise_width = 0;
+				width = 0;
+			}
+			++width;
+		} else {
+			if (++noise_width > BLOB_NOISE_GAP && width >= BLOB_SIZE) {
+				++num_blobs;
+				if (width > max_width) {
+					max_width = width;
+				}
+			}
 
-	if (num_black > INTER_THR) {
-		*line_type = INTERSECTION;
-	} else if (num_black > STOP_THR) {
-		*line_type = STOP;
-	} else if (num_black > LINE_THR) {
-		*line_type = LINE;
-	} else {
+			if (is_high) {
+				is_high = 0;
+			}
+		}
+	} while (++data < stop);
+
+	if (!num_blobs) {
 		*line_type = NOLINE;
+	} else if (num_blobs == 3) {
+		*line_type = STOP;
+	} else if (num_blobs == 1) {
+		if (max_width > INTER_THR) {
+			*line_type = INTERSECTION;
+		} else {
+			*line_type = LINE;
+		}
+	} else {
+		/* shouldn't detect two blobs */
+		/* what behaviour do we want here? */
+		return -1;
 	}
+
+	return 1;
 }
+
+
 
 void get_mode(enum line_type* dest, enum line_type* data, uint8_t size) {
 	/* Manually define occurance array */

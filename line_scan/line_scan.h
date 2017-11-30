@@ -18,6 +18,9 @@
 #define LINE_THR		24
 #define STOP_THR		70
 #define INTER_THR		100
+#define NUM_BLOBS		3
+#define BLOB_SIZE	    20
+#define BLOB_NOISE_GAP	5
 #define IS_BLACK_THR	0x00FF
 #define NUM_TYPES		4
 
@@ -44,9 +47,12 @@ int16_t metric_ml(uint16_t* data);
  *
  * Args:
  *		line_type (enum line_type*): Location to store line type.
- *		data (uint16_t*): Line scan data.
+ *		data (uint16_t*): Line scan data, already thresholded to {0,1}
+ *
+ * Returns:
+ *		int8_t: Error code.
  */
-void get_line_type(enum line_type* line_type, uint16_t* data);
+int8_t get_line_type(enum line_type* line_type, uint16_t* data);
 
 /*
  * Get most likely line type from array.
