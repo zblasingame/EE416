@@ -15,19 +15,21 @@
 /* 0xAA55 for object 0xAA56 for color code. */
 #define VO_SIZE					5
 #define VO_BYTE_SIZE			10
-#define OS_SYNC					0xAA55
-#define CC_SYNC					0xAA56
-#define FRAME_SYNC				0xAA55
+#define OS_SYNC				0xAA55
+#define CC_SYNC				0xAA56
+#define FRAME_SYNC			0xAA55
 #define PYFLAGS_FRAME_SYNC		1U
 #define PYFLAGS_OBJECT_SYNC		2U
 #define PYFLAGS_CHECKSUM		4U
-#define NUM_OBJECTS				3
-#define NUM_MARKERS				2
-#define SIG_THRESHOLD			0x000F
-#define SIGNATURE_A				0x12
-#define SIGNATURE_B				0x13
+#define NUM_OBJECTS			3
+#define NUM_MARKERS			2
+#define SIG_THRESHOLD			300
+#define X_THRESHOLD 			150
+#define SIGNATURE_A			0x12
+#define SIGNATURE_B			0x13
 #define SIGNATURE_CAR			0x4
 #define INIT_AREA_X_DEPTH		0xFFFe001 /* pixels^2 metres */
+
 
 /* Macro for making a word from two bytes */
 #define MAKE_WORD(x, y) (((uint16_t) (x) << 8) | (y))
